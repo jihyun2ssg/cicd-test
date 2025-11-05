@@ -1,0 +1,30 @@
+# -------------------------
+# Python / Jenkins 프로젝트용 .gitignore
+# -------------------------
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual env
+.venv/
+venv/
+
+# Jenkins
+*.log
+*.tmp
+*.bak
+*.swp
+*.zip
+*.tar
+*.gz
+
+# Credentials / Secrets (절대 업로드 금지)
+credentials.json
+token.json
+client_secrets.json
+
+# Playwright / Screenshots
+screenshots/
+ms-playwright/
