@@ -1,13 +1,14 @@
 pipeline {
   agent any
 
-  // 매일 오후 15:40(한국시간)
+  // 🕒 테스트용: 10분마다 자동 실행 (한국시간)
   triggers {
     cron('''TZ=Asia/Seoul
-40 15 * * *''')
+H/10 * * * *''')
   }
 
   options {
+    // 최근 20개 빌드 로그만 보관
     buildDiscarder(logRotator(numToKeepStr: '20'))
     timestamps()
   }
@@ -24,9 +25,11 @@ pipeline {
       when { expression { !isUnix() } }
       steps {
         bat '''
+        echo ===== [Setup venv & install deps] =====
         if not exist .venv (
           py -3 -m venv .venv
         )
+
         .venv\\Scripts\\python -m pip install --upgrade pip
 
         if exist requirements.txt (
@@ -43,7 +46,7 @@ pipeline {
       when { expression { !isUnix() } }
       steps {
         bat '''
-        echo ===== Run capture script =====
+        echo ===== [Run capture script] =====
         if not exist screenshots mkdir screenshots
         .venv\\Scripts\\python main.py
         '''
@@ -53,8 +56,8 @@ pipeline {
 
   post {
     always {
-      // ✅ Jenkins Build Artifacts에 스크린샷 저장
-      archiveArtifacts artifacts: 'screenshots/**/ssg.png', allowEmptyArchive: true
+      // ✅ Jenkins Build Artifacts에 모든 스크린샷 저장
+      archiveArtifacts artifacts: 'screenshots/**/*.png', allowEmptyArchive: true
     }
     success {
       echo '🎉 Build success - screenshots archived.'
