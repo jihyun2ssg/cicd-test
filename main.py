@@ -13,14 +13,17 @@ sys.stdout.reconfigure(encoding='utf-8')
 def upload_to_drive(file_path):
     gauth = GoogleAuth()
 
-    # ✅ Jenkins용: 기존 토큰 재사용 / 무인 인증
-    # credentials.json + token.json이 같은 경로에 있어야 함
-    gauth.LoadCredentialsFile("token.json")
+    # token.json 및 credentials.json이 같은 폴더에 있어야 함
+    if os.path.exists("token.json"):
+        gauth.LoadCredentialsFile("token.json")
+
+    # ① 인증 정보가 없을 때 → 최초 1회 브라우저 로그인
     if gauth.credentials is None:
-        # 처음 로컬에서 token.json 생성 후 Jenkins로 복사 필요
         gauth.LocalWebserverAuth()
         gauth.SaveCredentialsFile("token.json")
+    # ② 토큰 만료 시 자동 갱신
     elif gauth.access_token_expired:
+        print("[INFO] Google Drive access token 만료 → 자동 갱신 중...")
         gauth.Refresh()
         gauth.SaveCredentialsFile("token.json")
     else:
@@ -28,7 +31,7 @@ def upload_to_drive(file_path):
 
     drive = GoogleDrive(gauth)
 
-    folder_id = "1TxwpqSB0Xuhvdc1nDmmLZkpVWrjO1Pqs"  # ✅ 업로드할 Google Drive 폴더 ID
+    folder_id = "1TxwpqSB0Xuhvdc1nDmmLZkpVWrjO1Pqs"
     file_name = os.path.basename(file_path)
 
     gfile = drive.CreateFile({'title': file_name, 'parents': [{'id': folder_id}]})
